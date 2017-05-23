@@ -1,19 +1,220 @@
-%%This is a very basic article template.
-%%There is just one section and two subsections.
-\documentclass{article}
+% allgem. Dokumentenformat
+\documentclass[a4paper,12pt,headsepline]{scrartcl}
+
+% include png graphics
+\usepackage{graphicx}
+
+% figure refs with section number
+\usepackage{chngcntr}
+\counterwithin{figure}{section}
+
+\usepackage[utf8]{inputenc}
+
+% Zeichenencoding
+\usepackage[T1]{fontenc}
+
+\usepackage{lmodern}
+\usepackage{fix-cm}
+
+%todos can be marked
+\usepackage{todonotes}
+
+%page margin
+\usepackage{geometry}
+\geometry{left=3.5cm, right=2cm, top=2.5cm, bottom=2cm}
+
+% boxes in text
+\usepackage{fancybox}
+
+% wrap URLs
+\usepackage[hyphens,obeyspaces,spaces]{url}
+
+% text color
+\usepackage{color}
+
+% math symbols
+\usepackage{amssymb}
+
+% list of contents
+\usepackage[bookmarksnumbered,pdftitle={Master Thesis},hyperfootnotes=false,hidelinks]{hyperref}
+
+% new header with fancypaket
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyhead[C]{}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+%tables
+\usepackage{array}
+
+\frenchspacing
+
+\usepackage{setspace}
+
+\usepackage{capt-of}
+
+\usepackage{makeidx}
+
+% Listings
+\usepackage{listings}
+\lstset{
+  numbers=left,
+  numberstyle=\tiny,
+  numbersep=5pt,
+  breaklines=true,
+  breakatwhitespace,
+  keywordstyle=\color{black}\bfseries,
+  stringstyle=\sffamily,
+  showstringspaces=false,
+  basicstyle=\ttfamily\lst@ifdisplaystyle\footnotesize\else\normalsize\fi,
+  captionpos=b}
+\renewcommand{\lstlistingname}{Example}
+\AtBeginDocument{
+\counterwithin{lstlisting}{section}
+}
+\setlength{\emergencystretch}{2pt}
+% Index
+\makeindex
+
+% abbreviations
+\usepackage{nomencl}
+\let\abbrev\nomenclature
+
+\renewcommand{\nomname}{List of Abbreviations}
+\setlength{\nomlabelwidth}{.25\hsize}
+\renewcommand{\nomlabel}[1]{#1 \dotfill}
+\setlength{\nomitemsep}{-\parsep}
+\makenomenclature
+
+
+% Disable single lines at the start of a paragraph
+\clubpenalty = 10000
+% Disable single lines at the end of a paragraph
+\widowpenalty = 10000
+\displaywidowpenalty = 10000
+
+\usepackage{titlesec}
+%\subparagraph starting new line after heading
+\titleformat{\subparagraph}
+    {\normalfont\normalsize\bfseries}{\thesubparagraph}{1em}{}
+\titlespacing*{\subparagraph}{\parindent}{3.25ex plus 1ex minus .2ex}{.75ex plus .1ex}
+
+% create additional subsection layer
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}
+    {-2.5ex\@plus -1ex \@minus -.25ex}
+    {1.25ex \@plus .25ex}
+    {\normalfont\normalsize\bfseries}}
+\makeatother
+\setcounter{secnumdepth}{4}
+%\setcounter{tocdepth}{4}
 
 \begin{document}
 
+%use roman page numbers starting on this page
+\pagenumbering{roman}
 
-\section{Title}
+% title page
+\include{tex/title}
 
-\subsection{Subtitle}
+% römische Numerierung
+%\pagenumbering{arabic}
 
-Plain text.
+% 1.5 facher Zeilenabstand
+\onehalfspacing
 
-\subsection{Another subtitle}
+% Sperrvermerk
+%\input{sperrvermerk}
 
-More plain text.
+\include{tex/abstract}
+\include{tex/zusammenfassung}
 
+% einfacher Zeilenabstand
+\singlespacing
+
+% declaration of authorship
+\addcontentsline{toc}{section}{Declaration of Authorship}
+\include{tex/authorship}
+
+% Inhaltsverzeichnis anzeigen
+\newpage
+\tableofcontents
+\fancyhead[L]{}
+% das Abbildungsverzeichnis
+\newpage
+% Abbildungsverzeichnis soll im Inhaltsverzeichnis auftauchen
+\addcontentsline{toc}{section}{List of Figures}
+% Abbildungsverzeichnis endgueltig anzeigen
+\listoffigures
+
+% das Tabellenverzeichnis
+%\newpage
+% Abbildungsverzeichnis soll im Inhaltsverzeichnis auftauchen
+%\addcontentsline{toc}{section}{Tabellenverzeichnis}
+% \fancyhead[L]{Abbildungsverzeichnis / Abkürzungsverzeichnis} %Kopfzeile links
+% Abbildungsverzeichnis endgueltig anzeigen
+%\listoftables
+
+
+%%%%
+
+%list of abbreviations
+\addcontentsline{toc}{section}{List of Abbreviations}
+
+\input{tex/abbreviations}
+\printnomenclature
+
+% Definiert Stegbreite bei zweispaltigem Layout
+\setlength{\columnsep}{25pt}
+
+%%%%%%% EINLEITUNG %%%%%%%%%%%%
+%\twocolumn
+\newpage
+\fancyhead[L]{\nouppercase{\leftmark}} %Kopfzeile links
+
+% 1,5 facher Zeilenabstand
+\onehalfspacing
+
+%use arabic numbers starting with this page
+\pagenumbering{arabic}
+
+%sections
+\include{tex/introduction}
+
+\include{tex/mce}
+
+\include{tex/uvm}
+
+\include{tex/testbench}
+
+\include{tex/conclusion}
+
+\onecolumn
+% einfacher Zeilenabstand
+\singlespacing
+% Literaturliste soll im Inhaltsverzeichnis auftauchen
+\addcontentsline{toc}{section}{References}
+\newpage
+
+
+%references
+%\bibliographystyle{plain}
+%\bibliography{master_thesis_wittka}
+
+
+\onehalfspacing
+% evtl. Anhang
+%\newpage
+%\addcontentsline{toc}{section}{Anhang}
+%\fancyhead[L]{Anhang} %Kopfzeile links
+%\input{anhang/anhang}
+
+% leere Abschlussseite
+%\newpage
+%\thispagestyle{empty} % erzeugt Seite ohne Kopf- / Fusszeile
+%\section*{ }
 
 \end{document}
