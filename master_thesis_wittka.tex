@@ -7,6 +7,7 @@
 % figure refs with section number
 \usepackage{chngcntr}
 \counterwithin{figure}{section}
+\counterwithin{table}{section}
 
 \usepackage[utf8]{inputenc}
 
@@ -25,6 +26,31 @@
 
 % boxes in text
 \usepackage{fancybox}
+
+\usepackage[table]{xcolor}
+
+% tabularx
+\usepackage{tabularx,colortbl}
+
+% spanning multiple rows
+\usepackage{multirow}
+
+
+\newcommand\hlinewidth[1]{\noalign{\hrule height #1}}
+
+\newcommand\graycell[1]{%
+  \multicolumn{1}{c|}{\cellcolor{gray!40}\textcolor{white}{#1}}
+}
+
+% tabular column width
+\usepackage{array}
+
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+
+%\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+%\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+%\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
 
 % wrap URLs
 \usepackage[hyphens,obeyspaces,spaces]{url}
@@ -153,10 +179,10 @@
 % das Tabellenverzeichnis
 %\newpage
 % Abbildungsverzeichnis soll im Inhaltsverzeichnis auftauchen
-%\addcontentsline{toc}{section}{Tabellenverzeichnis}
+\addcontentsline{toc}{section}{List of Tables}
 % \fancyhead[L]{Abbildungsverzeichnis / Abkürzungsverzeichnis} %Kopfzeile links
 % Abbildungsverzeichnis endgueltig anzeigen
-%\listoftables
+\listoftables
 
 
 %%%%
@@ -203,8 +229,8 @@
 
 
 %references
-%\bibliographystyle{plain}
-%\bibliography{master_thesis_wittka}
+\bibliographystyle{plain}
+\bibliography{master_thesis_wittka}
 
 
 \onehalfspacing
