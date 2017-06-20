@@ -338,9 +338,9 @@ The start and end bit positions of the bit field are thereby determined by the c
 They both have to be in the valid bit range (0-63) of the register.\\
 Three instructions manipulate the value of the specified bit field.
 BCHG toggles all bits of the bit field, BSET sets them to '1' and BCLR sets them to '0'.
-The fourth instruction checks, if all bits of the bit field have a value of '1' respectively '0'.
+The fourth instruction checks, if all bits of the bit field have a value of '1' or '0', respectively.
 Its result is the one-hot encoded condition code shown in table~\ref{btst_cond}.
-This is then written into the register determined by the \emph{crs} field of the instruction. 
+It is then written into the register determined by the \emph{crs} field of the instruction. 
 
 \begin{table}[htb]
 \centering
@@ -363,7 +363,9 @@ This is then written into the register determined by the \emph{crs} field of the
 \subsection{Interfaces}
 
 The communication between other components and the MCE is done via the interfaces displayed in figure~\ref{fig:mce_inf}.
-
+They are used to program the instruction memory, start the execution of the MCE and provide its current status.
+Additionally, the external memory can be accessed and external condition code bits are provided to the engine.
+Below the different interfaces are discussed in more detail.
 
 \begin{figure}[htb]
  \centering
@@ -390,28 +392,57 @@ When \emph{write\_en} is asserted, the instruction specified in \emph{write\_dat
 
 \subsubsection{External Condition Code Interface}
 
-Via the external condition code interface, other components can apply condition code bits to the MCE by setting \emph{ext_cc_bits}.
+Via the external condition code interface, other components can apply condition code bits to the MCE by setting \emph{ext\_cc\_bits}.
 These can then be used in the BCC instruction to decide, if a conditional branch shall be executed.
 
 \subsubsection{Call Stack Overflow Interface}
 
 The call stack has a limited size.
-If the CALL instruction is executed, when the call stack is full, an overflow occurs and the MCE stops.
-The call stack overflow interface is used to inform other modules about this by asserting \emph{call\_stack\_overflow}.
-The signal stays asserted until the MCE is started again via the start interface.
+If the CALL instruction is executed, when the call stack is full, an overflow occurs and the MCE is stopped.
+The call stack overflow interface is used to inform other modules about this by asserting the identically named signal.
+It stays asserted until the MCE is started again via the start interface.
 
 \subsubsection{Done Interface}
 
-When the STOP instruction is executed, the execution of the MCE is stopped.
-To inform other modules about this, the done interface is used.
-Additionally to stopping the MCE the \emph{done} signal is asserted.
+When the STOP instruction is executed, the current running program of the MCE is stopped.
+Other modules are informed about this by asserting the \emph{done} signal of the identically named interface at the same time.
 It stays asserted until the MCE is started again via the start interface.
 
-\subsubsection{Memory Interface}
+\subsubsection{Memory Interface}\label{mem_inf}
+
+Additionally to its internal memory the MCE can access external memory via its memory interface, which is connected to a control and status register (CSR).
+Thereby, access to the memory can take more than a single clock cycle and only a single access can be processed at once.\\
+To read data from the external memory, \emph{rf\_read\_en} has to be asserted for a single clock cycle and the address of a specific register has to be provided at \emph{rf\_address} simultaneously.
+The address has to be stable until the completion of the read access is indicated by the CSR by asserting \emph{rf\_access\_complete}.
+At the same time the returned data is provided at \emph{rf\_read\_data}.
+It is only valid for this specific clock cycle.\\
+To write data to the memory, \emph{rf\_write\_en} has to be asserted for a single clock cycle.
+Simultaneously the destination address of the CSR has to be provided at \emph{rf\_address} and the to be stored data at \emph{rf\_write\_data}.
+Again both values have to be stable until \emph{rf\_access\_complete} is asserted by the CSR.\\
+For the reason that not all available addresses of the CSR have to be associated with a register, gabs can occur in the address space.
+To indicate this, \emph{rf\_invalid\_address} is asserted simultaneously with \emph{rf\_access\_complete}, if the read or write address cannot be accessed.
 
 
 
 \subsection{Hardware Architecture}
+
+Internally the MCE consists of multiple components composed in 4 pipeline stages (figure~\ref{fig:mce_pipeline}), which execute instructions in-order.
+All pipeline stages are stalled at the same time, if the global \emph{stall} signal is asserted. 
+This signal is asserted, if conflicts occur when the external memory is accessed (see section~\ref{mem_access}).\\
+Additionally the information, if the MCE is currently running is propagated between the individual pipeline stages using \emph{valid\_in} and \emph{valid\_out}.
+So that on the one hand each stage is only started, when the first instruction of a program reaches it and on the other hand stops, when the last instruction passed through it.\\
+All three signals are included in the diagrams of the relevant components in the following sections.
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=1.0\textwidth,angle=0]{images/mce_pipeline}
+ %\includegraphics[scale=1.0]{images/mce_pipeline}
+ \caption{Pipeline Stages of the MCE}
+\label{fig:mce_pipeline}
+\end{figure}
+
+The interaction between components of the pipeline as well as the interaction between the components and the interfaces of the MCE is displayed in figure~\ref{fig:mce_block}.
+The functionality of the individual components is described below.
 
 
 
@@ -423,36 +454,49 @@ It stays asserted until the MCE is started again via the start interface.
 \label{fig:mce_block}
 \end{figure}
 
-- 4 pipeline stages\\
-- in-order\\
-- interfaces\\
-- image: black box / stages\\
-
 \subsubsection{Instruction Memory}
-
-- stores the instructions\\
-- write interface\\
-- 4kx32bit ram\\
+The instruction memory is a 32~bit wide random-access memory (RAM).
+It has a depth of 12~bit and can thereby store up to 4096 entries.
+The programs, which are executed in the MCE are stored in it.
+A program consists thereby of a sequence of instructions.
+Each instruction is a single entry in the RAM and can be written in succession via the instruction memory interface.
 
 \subsubsection{Program Counter}
 
-- address pointer of the current instruction\\
-- value is read each clock cycle\\
-- updated to point to the next instruction\\
-- control flow instruction can modify the pc\\
-- execution starts at 'start' signal\\
-- execution ends at STOP instruction
+The program counter is a 32-bit wide register.
+While the MCE is running, it points to the current executed instruction.
+Thereby running means, that the MCE has been started using the start interface and the execution has not been stopped yet via a STOP instruction or an overflow of the call stack.\\
+The instruction at the address determined by the program counter is read automatically every clock cycle.
+Additionally, the program counter is incremented each clock cycle, while the program is running.
+The instructions of the CFLOW group are used to perform other modifications besides this incrementation.
 
 \subsubsection{Call Stack}
 
-- stack that can hold up to 14 addresses\\
-- CALL pushes address\\
-- RET pops address\\
-- overflow is passed to external interface\\
-- overflow terminates program execution\\
-- only stores pc, not scratchpad\\
+The call stack is a 32~bit wide RAM holding up to 14 entries.
+It is used to store and restore the value of the program counter during a function call.
+The position of the current entry is determined by a 4~bit wide pointer.
+The program counter is initially empty, meaning that the pointer is set to 0.\\
+A function call is performed by executing the CALL instruction.
+Thereby, the current value of the program counter is pushed to the call stack and the pointer of the call stack is incremented.
+At the end of a function call the RET instruction restores the program counter by popping the top entry from the call stack and decrementing its pointer.\\
+If an overflow of the call stack occurs, the execution of the MCE is stopped.
+Additionally, the signal of the call stack overflow interface is asserted to indicate this to external units.
+
+\subsubsection{Instruction Decoder}
+
+
 
 \subsubsection{Scratchpad}
+
+The scratchpad is a 64~bit wide RAM with 16 entries.
+It provides the operands to the arithmetic logic unit (ALU) and the memory interface as well as stores their results.
+Therefore, it provides 2 read ports and a single write port (figure~\ref{fig:scp_inf}), which can be used simultaneously and return their data within a single clock cycle.
+Each port uses a 4~bit address to determine the desired scratchpad entry and 64~bit for the read or write data, respectively.
+
+
+Thereby, the read ports are located at stage 1 of the pipeline and the write port at stage 3.
+This leads to the problem, that instructions could be using results of previous instructions, which are not already stored in the scratchpad.
+Therefore data forwarding is used to bypass the scratchpad and provide results to following instructions.
 
 \begin{figure}[htb]
  \centering
@@ -462,34 +506,45 @@ It stays asserted until the MCE is started again via the start interface.
 \label{fig:scp_inf}
 \end{figure}
 
-- stores results of operations\\
-- provides operands to operations\\
-- data available next clk cycle\\
-- 16x64bit register\\
-- 4 bit address\\
-- 1 write port (stage 3)\\
-- written by ALU and memory interface\\
-- 2 read ports (stage 1)\\
-- data forwarding when same address is read/written\\
-
 
 \subsubsection{Arithmetic Logic Unit}
 
-- executes operations\\
-- calculates results\\
-- calculates condition code\\
-- stage 2\\
+The ALU performes operations on the operands read from the scratchpad or immediate values encoded in the instruction itself.
+Thereby, the operation is determined by the opcode of the current instruction.
+Its result is then written back into the scratchpad.
+Additionally, some instructions produce condition codes, which are then stored in the CCR.
+The ALU is located at stage 2 of the pipeline.
 
-\subsubsection{Memory Interface}
+\subsubsection{Memory Access}\label{mem_access}
 
-- access to the registerfile\\
-- LDR read from memory\\
-- STR write to memory\\
-- stalls pipeline, when read/write conflict occurs\\
-- stalls pipeline, when memory access, while pending access\\
-- stage 2\\
+In general a memory interface is used to access external memory.
+In case of the MCE this external memory is a CSR.
+Only the LDR and STR instructions can access the external memory.
+Thereby LDR reads from the CSR and STR writes into it.
+After the source address and if necessary the to be written data is read from the scratchpad, the memory access is initialized as described in section~\ref{mem_inf}.
+Since an access can take multiple clock cycles, the next instructions are executed, while waiting for the access to be completed.
+By that the MCE does not have to be stopped immediately, but some conflicts can occur, which causes the MCE to stop its execution anyway.
+When such a conflict appears, the global \emph{stall} signal is asserted, which causes all pipeline stage to stop at once.\\
+The first conflict is, that another memory access occurs.
+Since only a single access is allowed at the same time, the engine has to wait at first for the previous access to be completed, before the next one can be executed.
+Furthermore, conflicts can occur, when the scratchpad is accessed and a read operation on the memory interface is pending.
+This is the fact, when following instructions want to read from or write to the same scratchpad address as the pending LDR instruction.
+The engine is stalled until the memory access is completed, so the in-order execution of the instructions is preserved.
+The external memory access is located at stage 2 of the pipeline in parallel to the ALU, since no instruction makes use of both components.
 
 \subsubsection{Condition Code Register}
+
+The CCR consists of 4 registers each 4~bit wide.
+It stores the condition codes calculated by the ALU and is used to determine, if a conditional instruction is executed.\\
+The interface of the CCR is shown in figure~\ref{fig:ccr_inf}.
+When a valid condition code is available at the ALU, it is applied to the \emph{cond\_code} input of the CCR.
+The address selecting a specific register of the CCR is applied to \emph{cc\_reg\_sel}.
+It is determined by the \emph{crs} field of the instruction.
+Simultaneously \emph{cc\_valid} is asserted, so the condition code is stored.\\
+The instruction decoder can access each bit of the CCR directly to determine, if a conditional instruction is executed.\\
+The CCR is located at stage 3 of the pipeline in parallel to the write access of the scratchpad, since both use data produced by the ALU.
+Since the instruction decoder is located at stage 1, this leads to a delay of 3 instructions between the instruction writing the condition code and the one reading it. This delay has to be considered, when writing a program for the MCE.
+
 
 \begin{figure}[htb]
  \centering
@@ -498,13 +553,6 @@ It stays asserted until the MCE is started again via the start interface.
  \caption{Condition Code Register Interface}
 \label{fig:ccr_inf}
 \end{figure}
-
-- 4x4bit register\\
-- stores condition code calculated by ALU\\
-- only written by ALU\\
-- each bit can be accessed directly to determine, if a GUARD instruction or BCC should be executed\\
-- stage 3\\
-- 3 instructions delay between writing and reading instruction\\
 
 
 
