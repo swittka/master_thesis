@@ -62,7 +62,7 @@
 \usepackage{amssymb}
 
 % list of contents
-\usepackage[bookmarksnumbered,pdftitle={Master Thesis},hyperfootnotes=false,hidelinks]{hyperref}
+%\usepackage[bookmarksnumbered,pdftitle={Master Thesis},hyperfootnotes=false,hidelinks]{hyperref}
 
 % new header with fancypaket
 \usepackage{fancyhdr}
@@ -138,6 +138,9 @@
 \setcounter{secnumdepth}{4}
 %\setcounter{tocdepth}{4}
 
+% list of contents
+\usepackage[bookmarksnumbered,pdftitle={Master Thesis},hyperfootnotes=false,hidelinks]{hyperref}
+
 \begin{document}
 
 %use roman page numbers starting on this page
@@ -162,6 +165,8 @@
 \singlespacing
 
 % declaration of authorship
+\cleardoublepage
+\phantomsection
 \addcontentsline{toc}{section}{Declaration of Authorship}
 \include{tex/authorship}
 
@@ -172,6 +177,8 @@
 % das Abbildungsverzeichnis
 \newpage
 % Abbildungsverzeichnis soll im Inhaltsverzeichnis auftauchen
+\cleardoublepage
+\phantomsection
 \addcontentsline{toc}{section}{List of Figures}
 % Abbildungsverzeichnis endgueltig anzeigen
 \listoffigures
@@ -179,6 +186,8 @@
 % das Tabellenverzeichnis
 %\newpage
 % Abbildungsverzeichnis soll im Inhaltsverzeichnis auftauchen
+\cleardoublepage
+\phantomsection
 \addcontentsline{toc}{section}{List of Tables}
 % \fancyhead[L]{Abbildungsverzeichnis / Abkürzungsverzeichnis} %Kopfzeile links
 % Abbildungsverzeichnis endgueltig anzeigen
@@ -188,6 +197,8 @@
 %%%%
 
 %list of abbreviations
+\cleardoublepage
+\phantomsection
 \addcontentsline{toc}{section}{List of Abbreviations}
 
 \input{tex/abbreviations}
@@ -224,6 +235,8 @@
 % einfacher Zeilenabstand
 \singlespacing
 % Literaturliste soll im Inhaltsverzeichnis auftauchen
+\cleardoublepage
+\phantomsection
 \addcontentsline{toc}{section}{References}
 \newpage
 

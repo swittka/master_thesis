@@ -55,6 +55,8 @@ Furthermore there is a chance, that the transaction is completed indicating an i
 The module UVC of the MCE has knowledge of the desired behavior of the DUT.
 It uses a reference model to predicts the behavior of the engine for a given set of stimuli.
 In the scoreboard the predicted results are then matched against the data received from the interface UVCs and its own collectors.
+With this flow the behavior of the engine is automatically checked.
+This self-checking is crucial to a coverage-driven verification flow, since the stimuli generation is also automated.
 The structure of the module UVC is shown in figure~\ref{fig:module_uvc}.
 
 \begin{figure}[htb]
@@ -174,7 +176,31 @@ This is displayed in figure~\ref{fig:scoreboard_scp_write_flow}.
 
 \subsubsection{Reference Model}
 
+The reference model is a crucial part of the self-checking testbench. 
+It predicts the behavior of the DUT for a given set of stimuli, which is then matched in the scoreboard against the transactions collected from the DUT.
+The testbench of the MCE uses a reference model performing on the transaction level, since the self-checking of the testbench is performed on a functional level.
+Following the architecture of the reference model is explained.
+
 \paragraph{List of Active Instructions}
+
+The central component of the reference model is a list of active instructions.
+It contains all instructions, which already have been fetched from the instruction memory, but did not yet complete their execution.
+This list is a queue with its last item being the instruction fetched at the earliest and its first item being fetched at the latest.
+All operations of the reference model are performed on the items of this list.\\
+An active instruction contains all information crucial to the execution of the instruction.
+Its structure is shown in figure~\ref{fig:active_inst}.
+Firstly it consists of the instruction itself and its address in the instruction memory.
+Additionally the current status of execution of the active instruction within the reference model is hold.
+Furthermore, data read or calculated during the execution of the operation are included.
+This can be condition codes on the one hand or scratchpad data on the other hand.
+
+\begin{figure}[htb]
+ \centering
+ %\includegraphics[width=1.0\textwidth,angle=0]{images/active_inst}
+ \includegraphics[scale=1.0]{images/active_inst}
+ \caption{Structure of an Active Instruction}
+\label{fig:active_inst}
+\end{figure}
 
 \paragraph{Instruction Execution Flow}
 
@@ -187,3 +213,5 @@ This is displayed in figure~\ref{fig:scoreboard_scp_write_flow}.
 \subsection{Virtual Sequence Driver}
 
 \subsection{Test Library}
+
+\subsection{Coverage and Checks}

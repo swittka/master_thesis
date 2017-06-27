@@ -410,7 +410,7 @@ It stays asserted until the MCE is started again via the start interface.
 
 \subsubsection{Memory Interface}\label{mem_inf}
 
-Additionally to its internal memory the MCE can access external memory via its memory interface, which is connected to a control and status register (CSR).
+Additionally to the scratchpad the MCE can access external memory via its memory interface, which is connected to a control and status register (CSR).
 Thereby, access to the memory can take more than a single clock cycle and only a single access can be processed at once.\\
 To read data from the external memory, \emph{rf\_read\_en} has to be asserted for a single clock cycle and the address of a specific register has to be provided at \emph{rf\_address} simultaneously.
 The address has to be stable until the completion of the read access is indicated by the CSR by asserting \emph{rf\_access\_complete}.
