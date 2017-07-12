@@ -25,30 +25,69 @@ The module UVC additionally collects data of the internal state of the design.
 \subsection{ProgramFlow Interface UVC}
 
 The ProgramFlow interface UVC groups multiple interfaces of the MCE. 
-It handles the instruction memory, external condition code bits, call stack overflow, start and done interface.
+It handles the instruction memory, external condition code bits, call stack overflow, start and done interfaces.
 Thereby each interface has its own agent.
 These agents are described in the following sections.
 
 \subsubsection{Instruction Memory Agent}
 
+The instruction memory agent is responsible for driving and monitoring the instruction memory interface of the MCE.
+It can either be active or passive.
+When the agent is active, it uses a sequence driver to send transactions to the BFM.
+Thereby a transaction consists of a 32~bit instruction and a 12~bit address.
+The instruction is thereby a separate sequence item, consisting of the individual fields of the instruction.
+Within that, when-subtyping is used to group the fields for each type of instruction identified by its opcode.
+The BFM then writes the instruction into the desired address of the instruction memory by applying both field to their corresponding signals of the interface.
+In addition \emph{write\_en} is asserted for a single clock cycle to indicate that the assigned address and data are valid.\\
+Independent of weather the agent is active or passive. The monitor collects data from the interface. It creates a sequence item and sends it via its TLM port to
+the module UVC. An item is created every clock cycle the \emph{write\_en} is asserted.
+
+
 \subsubsection{External Condition Code Bits Agent}
+
+Similar to the instruction memory agent, the external condition code bits agent consists of a sequence driver and BFM to drive signals into the DUT and a
+monitor to collect data from the connected interface.
+When the sequence driver sends a transaction to the BFM, its value is directly assigned to the \emph{ext\_cc\_bits} signal of the interface.
+Comparable to the CCR, the 16 bit signal is split into 4 4~bit groups. Thus, a transaction consits of a 4~bit data field and a 4~bit index, which specifies the
+group of bits. So always 4 bits are set at once.\\
+The monitor creates always a sequence item, when a bit is changed within a 4~bit group. 
+So in a single clock cycle up to 4 transactions can be created and send to the module UVC.
 
 \subsubsection{Call Stack Overflow Agent}
 
+Since the call stack overflow interface, does not contain any signals, that are inputs to the DUT, the corresponding is a purely passive one.
+This means, that it only contains a monitor and no sequence driver or BFM.
+It creates a transaction, whenever the \emph{call\_stack\_overflow} signal rises and sends it to the module UVC and virtual sequence driver.
+
 \subsubsection{Start Agent}
 
+In contrast to the call stack overflow agent, the start agent can again be active or passive.
+When the sequence driver sends a transaction to the BFM, it is used to drive the start interface.
+Thereby, a transaction consists of the start address, which is then assigned to the corresponding signal of the interface.
+In addition, the \emph{start} signal is asserted for a single clock cycle to indicate, that the value of \emph{start\_address} is valid.\\
+The monitor of the start agent creates a sequence item, whenever the \emph{start} signal of the interface is asserted.
+The item consists of the value available at the \emph{start\_address} signal and is send to the module UVC and virtual sequence driver.
+
 \subsubsection{Done Agent}
+
+Similar to the call stack overflow interface, the done interface does not contain any inputs to the DUT.
+Therfore, it is also a pure passive component, containing only a monitor.
+It creates a transaction, whenever the \emph{done} signal rises and sends it to the module UVC and virtual sequence driver.
 
 \subsection{CSR Interface UVC}
 
 The external memory interface is handled in the CSR interface UVC.
-Its monitor samples the individual signals of the interface and creates an sequence item for each CSR access with the collected data.
-This item is then sent to the module UVC via a TLM port.\\
+Its monitor samples the individual signals of the interface and creates a sequence item for each CSR access with the collected data.
+This item consists of the direction of the operation (read or write), the address within the CSR, the data read from or written to the CSR and a flag
+indicating, weather the address was valid or not. 
+It is then sent to the module UVC via a TLM port.\\
 When the MCE starts a transaction, the UVC has to respond to this request.
-So if the monitor notices, that a transaction was started, it emits an event, causing the sequence driver to generate the response.
+Therefore, the UVC contains a slave agent.
+So if the monitor notices, that a transaction has been started, it emits an event, causing the sequence driver to generate the response.
 Since a memory access can take multiple clock cycles to complete, first a random number of up to 10 clock cycles is waited.
 After that the UVC sends the access complete signal and additionally random data is returned for a read transaction.
 Furthermore there is a chance, that the transaction is completed indicating an invalid address in addition to the access complete signal.
+In addition, the monitor performes checks to ensure, that transaction on the interface are always started and completed correctly.
 
 \subsection{MCE Module UVC}
 
