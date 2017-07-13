@@ -1,10 +1,14 @@
 \section{Overview of the Microcode Engine}
 
-One of the first decisions
-- hardware performance, software flexibility \cite{}
-- hardware fast\\
-- software flexible\\
-- microcode engine: basic instructions to gain some amount of flexibility\\
+The microcode engine is used to replace hardwired control logic.
+It performs operations, which are controlled using a set of instructions do create software base control logic.
+This concept of micro-programming was first introduced by by Maurice Wilkes \cite{genesis} in 1953.
+Since the set of instructions can be changed even during run-time, it creates flexibility in the design process.
+This flexibility is the advantage of the MCE compared to hardwired control circuitry, since changes of the hardware are very expensive after tape-out.
+In contrast, a hardwired solution often performs better than the software solution.
+This is due to the fact, that software is executed sequentially and hardware can be run in parallel \cite{verilog}.
+So the MCE trades performance against flexibility.\\
+An overview of the MCE is given in the following sections. See \cite{mce} for more details on the design.
 
 \subsection{Instruction Set}
 
@@ -23,7 +27,7 @@ The address of the register is specified by the 2~bit field \emph{crs}.
 The condition code can then be used in other instructions.
 Therefor, the 4~bit wide \emph{ccmux} field is used.
 It addresses a specific bit in the CCR.\\
-Following, the functionalities of the instructions are briefly descriped. For detailed information see \cite{mce}.\\
+Following, the functionalities of the instructions are briefly described.\\
 
 \begin{table}[htbp]
 
@@ -241,7 +245,7 @@ Finally, the STOP instruction ends the execution of the program and asserts the 
 
 \subsubsection{LDST Instruction Group}
 
-The LDST group contains intructions used for setting registers of the scratchpad as well as accessing the memory interface.
+The LDST group contains instructions used for setting registers of the scratchpad as well as accessing the memory interface.
 The unsigned extended \emph{immediate} value is written into the destination register, when executing the LDI instruction.
 Since this only writes 16~bit values into the 64~bit wide destination register, the other bits cannot be set by this instruction.\\
 Therefore the instruction set also contains four instructions to set each 16~bit quarter-word individually.
@@ -270,23 +274,23 @@ In table~\ref{arith_cond} the possible condition codes are shown.
     \rowcolor{black!70}
     \textcolor{white}{\textbf{Identifier}} & \textcolor{white}{\textbf{Value}} & \textcolor{white}{\textbf{Description}} \\
     \hline
-    CC\_NORM   & 0x0 & neither under- nor overflow occured \\
+    CC\_NORM   & 0x0 & neither under- nor overflow occurred \\
     \hline
     \rowcolor{black!10}
-    CC\_OVRFLW & 0x5 & overflow occured \\
+    CC\_OVRFLW & 0x5 & overflow occurred \\
     \hline
-    CC\_UDRFLW & 0x6 & underflow occured \\
+    CC\_UDRFLW & 0x6 & underflow occurred \\
     \hline
 \end{tabular}
-\caption{Arithmatic Condition Codes} \label{arith_cond}
+\caption{Arithmetic Condition Codes} \label{arith_cond}
 \end{table}
 
 \subsubsection{LOGIC Instruction Group}
 
-Bitwise and compare operations can be performed using instructions of the LOGIC group.
-The NOT instruction performs the bitwise unary negation on the value of its source register.
-The AND, OR and XOR instructions perform their corresponding binary bitwise operations on the values of both their source registers.
-All instructions executing bitwise operations write their results into their destination register.\\
+Bit-wise and compare operations can be performed using instructions of the LOGIC group.
+The NOT instruction performs the bit-wise unary negation on the value of its source register.
+The AND, OR and XOR instructions perform their corresponding binary bit-wise operations on the values of both their source registers.
+All instructions executing bit-wise operations write their results into their destination register.\\
 The CMPI instruction compares the value of its signed source register to its unsigned immediate value.
 Similar to that, the CMP instruction compares the signed values of both its source registers.
 The resulting 4~bit condition code is then written into the specified register of the CCR.
@@ -484,7 +488,9 @@ Additionally, the signal of the call stack overflow interface is asserted to ind
 
 \subsubsection{Instruction Decoder}
 
-
+Within the instruction decoder the data contained in the individual fields of an instruction are forwarded to the other components of the engine.
+Furthermore, it is decided, if a fetched instruction of the GARITH or GLOGIC group is executed as well as the BCC instruction.
+Therefore the in the instruction specified bit of the CCR is used.
 
 \subsubsection{Scratchpad}
 
@@ -509,7 +515,7 @@ Therefore data forwarding is used to bypass the scratchpad and provide results t
 
 \subsubsection{Arithmetic Logic Unit}
 
-The ALU performes operations on the operands read from the scratchpad or immediate values encoded in the instruction itself.
+The ALU performs operations on the operands read from the scratchpad or immediate values encoded in the instruction itself.
 Thereby, the operation is determined by the opcode of the current instruction.
 Its result is then written back into the scratchpad.
 Additionally, some instructions produce condition codes, which are then stored in the CCR.

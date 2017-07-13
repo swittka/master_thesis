@@ -1,1 +1,13 @@
 \section*{Abstract}
+
+This master's thesis deals with the functional verification of a microcode engine developed by the Computer Architecture Group at the Institute of Computer
+Engineering of the Heidelberg University.
+It discusses, how the Universal Verification Methodology in combination with Metric Driven Verification can be used to ensure the correct behavior of the
+engine. \\
+The testbench developed within this work is aimed to generate random stimuli on the fly using multiple tests. 
+These tests are developed to address specific functionalities of the engine, but being still generic enough to reach all interesting scenarios. 
+The generated stimuli are then used to drive the design under test. \\
+Additionally, a transaction-level based reference model is used to predict the behavior of the microcode engine. 
+Furthermore, the internal state of the microcode engine is monitored additionally to its interfaces, so the model is even closer related to the behavior of the engine.
+Both the collected and the predicted results are then compared to create a self-checking environment.
+Finally coverage data is collected to measure the effectiveness of the verification.

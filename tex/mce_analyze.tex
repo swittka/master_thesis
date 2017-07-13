@@ -1,1 +1,122 @@
 \section{Analyzing the Microcode Engine}
+
+The first step, when verifying a design, is to create a verification plan. 
+It contains all functionalities of the design, which have to be checked.
+Additionally, completion criteria are defined. They indicate that the verification is complete, when all of them are met.
+Following the verification plan of the MCE is introduced.
+
+\subsection{Instruction Set}
+
+The instruction set is the most complex part of the verification plan, since every instruction has to be verified individually.
+First of all, it has to be checked, that only valid opcodes are used, as invalid ones cannot be associated with an operation and can result in malfunctions
+within the MCE. Additionally all possible values for any field has to be covered for each individual instruction.\\
+Also combinations of similar fields have to be covered, so the data paths are examined.
+Meaning, that all combinations of \emph{RD}, \emph{RS1} and \emph{RS2} have to be included.
+Furthermore, each valid resulting condition code has to be written into each register of the CCR and it has to be checked that each instruction produces correct
+results.\\
+In addition to these items targeting individual instructions, the interaction between instructions has to be covered.
+Most important is, that the transition between opcodes is examined, so the MCE can handle all combinations of instructions.
+But furthermore, the transition between the same kind of fields between instructions is covered.
+Meaning, that for example the destination address of an instruction does not influence the destination address of the following one.
+
+\subsection{Start Interface}
+
+For the start interface has to be covered, that the MCE was started using each possible start address within the instruction memory.
+Furthermore, it has to be checked, that the MCE is actually started, when the \emph{start} signal is asserted and also started at the specified address.
+Finally, it has to be checked, that the MCE is not started, when \emph{start} is deasserted.
+
+\subsection{Instruction Memory Interface}
+
+Within the instruction memory interface, it has to be covered, that each address of the instruction memory can be written. 
+The data does not have to be covered specifically, since this is already done by collecting the coverage for the instructions, as mentioned above.
+It has to be checked furthermore, that data is only written into the instruction memory, when \emph{write\_en} is asserted.
+
+\subsection{External Condition Code Interface}
+
+The only thing covered within the external condition code interface is, that each condition code bit has been asserted or deasserted, respectively and that it
+can influence the execution of the BCC instruction.
+Since all combination of bits are allowed, no checks have to be performed. 
+
+\subsection{Call Stack Overflow Interface}
+
+For the call stack overflow interface has to be covered, that an overflow can actually occur.
+Furthermore, has to be checked, that the signal is deasserted after reset.
+Additionally, it has to be checked, that it is asserted, whenever a call stack overflow occurs and also deasserted, whenever the MCE is started.
+In all other cases, the signal has to be constant.
+
+\subsection{Done Interface}
+
+Similar to the call stack overflow interface, it has to be covered that the MCE can actually be stopped.
+Furthermore, has to be checked, that the signal is deasserted after reset.
+Additionally, it has to be checked, that it is asserted, whenever a STOP instruction is executed and also deasserted, whenever the MCE is started.
+In all other cases, the signal has to be constant.
+
+\subsection{Memory Interface}
+
+The memory interface is the most complex interface of the MCE. Multiple checks have to be performed to ensure, that only valid transactions occur on the
+interface. Following these checks are described.
+
+\subsubsection{Address Checks}
+
+When an transaction has been started, the address has to remain stable until \emph{access\_complete} is asserted.
+
+\subsubsection{Write\_en Checks}
+
+The \emph{write\_en} signal is asserted only for a single clock cycle. It cannot be asserted, while an access is pending on the memory interface.
+
+\subsubsection{Write\_data Checks}
+
+When an transaction has been started, the write data has to stay stable until \emph{access\_complete} is asserted.
+
+\subsubsection{Read\_en Checks}
+
+The \emph{read\_en} signal is asserted only for a single clock cycle. It cannot be asserted, while an access is pending on the memory interface.
+
+\subsubsection{Read\_data Checks}
+
+No specific requirements are laid down on the \emph{read\_data} signal.
+
+\subsubsection{Access\_complete Checks}
+
+The \emph{access\_complete} signal is only asserted, when an access is pending on the memory interface.
+It is asserted for a single clock cycle.
+
+\subsubsection{Invalid\_address Checks}
+
+The \emph{invalid\_address} signal can only be asserted simultaneously with \emph{access\_complete}.
+It is also asserted for a single clock cycle.
+
+\subsection{Internal Components}
+
+Since only little information about the internal state of the MCE can be gathered via its interfaces, additional data has to be collected from some of the
+internal components of the engine. 
+Thereby malfunctions within the engine can be detected, as soon as the happen.
+Additionally these information can be used to check the execution of an instruction right after it has been completed.
+
+\subsubsection{Program Counter}
+
+It has to be covered, that the PC can be each address of the instruction memory. Furthermore the transition between these addresses has to be covered.
+It needs to be checked, that the PC is initialized, when the MCE is started and always updated after an instruction has been fetched.
+
+\subsubsection{Call Stack}
+
+Addresses have to be pushed to as well as popped from the call stack. However, no address can be popped from an empty call stack.
+Whenever an address is pushed to the call stack, its size increments and whenever one is popped from it, its size decrements.
+Additionally, the PC has to be restored, when an address is popped from the stack.
+The call stack should be able to have each valid size and an overflow has to occur, when an address is pushed to a full stack.
+
+\subsubsection{Scratchpad}
+
+It has to be checked, that data is read from or written to the register specified by the corresponding address signal of a port, when its enable signal is
+asserted.
+Additionally has to be covered, that each port is accessed, each address of the scratchpad is used and the combination of both.
+Meaning, that each address is used on each port.\\
+Furthermore, for each individual port has to be covered, that each transition of addresses occurs.
+
+
+\subsubsection{Condition Code Register}
+
+For the condition code register has to be checked, that condition code is written into the selected register, when \emph{cc\_valid} is asserted.
+It also has to be covered, that each register is written as well as each valid condition code.
+Furthermore, each combination of both has to be covered. Meaning, that each valid condition code is written into each register of the CCR.
+Finally, the transition between those has to be covered.

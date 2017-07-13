@@ -5,7 +5,7 @@ Meaning, that the current state of the DUT is not only determined by the informa
 On the one hand this has the downside, that the testbench is dependent upon the internal structure of the design.
 So internal changes in the design can require adjustments of the testbench, which typically should be avoided.
 On the other hand this makes it easier to check the behavior of the DUT.
-Since the interfaces of the design provide only limited information about the current state of the design itself, the grey box view is necessary to collect enough covergage data to verify the engine.\\ 
+Since the interfaces of the design provide only limited information about the current state of the design itself, the grey box view is necessary to collect enough coverage data to verify the engine.\\ 
 Structural the testbench of the MCE consists of two interface UVCs, a module UVC and a virtual sequence driver (figure~\ref{fig:mce_tb}).\\
 The interface UVCs are used to handle the interfaces of the engine.
 Thereby, the CSR UVC is responsible for the memory interface.
@@ -40,7 +40,8 @@ Within that, when-subtyping is used to group the fields for each type of instruc
 The BFM then writes the instruction into the desired address of the instruction memory by applying both field to their corresponding signals of the interface.
 In addition \emph{write\_en} is asserted for a single clock cycle to indicate that the assigned address and data are valid.\\
 Independent of weather the agent is active or passive. The monitor collects data from the interface. It creates a sequence item and sends it via its TLM port to
-the module UVC. An item is created every clock cycle the \emph{write\_en} is asserted.
+the module UVC. An item is created every clock cycle the \emph{write\_en} is asserted. 
+In addition, coverage is collected for the interface, whenever a sequence item is created.
 
 
 \subsubsection{External Condition Code Bits Agent}
@@ -48,16 +49,18 @@ the module UVC. An item is created every clock cycle the \emph{write\_en} is ass
 Similar to the instruction memory agent, the external condition code bits agent consists of a sequence driver and BFM to drive signals into the DUT and a
 monitor to collect data from the connected interface.
 When the sequence driver sends a transaction to the BFM, its value is directly assigned to the \emph{ext\_cc\_bits} signal of the interface.
-Comparable to the CCR, the 16 bit signal is split into 4 4~bit groups. Thus, a transaction consits of a 4~bit data field and a 4~bit index, which specifies the
+Comparable to the CCR, the 16 bit signal is split into 4 4~bit groups. Thus, a transaction consists of a 4~bit data field and a 4~bit index, which specifies the
 group of bits. So always 4 bits are set at once.\\
 The monitor creates always a sequence item, when a bit is changed within a 4~bit group. 
 So in a single clock cycle up to 4 transactions can be created and send to the module UVC.
+In addition, coverage is collected for the interface, whenever a sequence item is created.
 
 \subsubsection{Call Stack Overflow Agent}
 
 Since the call stack overflow interface, does not contain any signals, that are inputs to the DUT, the corresponding is a purely passive one.
 This means, that it only contains a monitor and no sequence driver or BFM.
 It creates a transaction, whenever the \emph{call\_stack\_overflow} signal rises and sends it to the module UVC and virtual sequence driver.
+In addition, coverage is collected for the interface, whenever a sequence item is created.
 
 \subsubsection{Start Agent}
 
@@ -67,12 +70,14 @@ Thereby, a transaction consists of the start address, which is then assigned to 
 In addition, the \emph{start} signal is asserted for a single clock cycle to indicate, that the value of \emph{start\_address} is valid.\\
 The monitor of the start agent creates a sequence item, whenever the \emph{start} signal of the interface is asserted.
 The item consists of the value available at the \emph{start\_address} signal and is send to the module UVC and virtual sequence driver.
+In addition, coverage is collected for the interface, whenever a sequence item is created.
 
 \subsubsection{Done Agent}
 
 Similar to the call stack overflow interface, the done interface does not contain any inputs to the DUT.
-Therfore, it is also a pure passive component, containing only a monitor.
+Therefore, it is also a pure passive component, containing only a monitor.
 It creates a transaction, whenever the \emph{done} signal rises and sends it to the module UVC and virtual sequence driver.
+In addition, coverage is collected for the interface, whenever a sequence item is created.
 
 \subsection{CSR Interface UVC}
 
@@ -87,7 +92,7 @@ So if the monitor notices, that a transaction has been started, it emits an even
 Since a memory access can take multiple clock cycles to complete, first a random number of up to 10 clock cycles is waited.
 After that the UVC sends the access complete signal and additionally random data is returned for a read transaction.
 Furthermore there is a chance, that the transaction is completed indicating an invalid address in addition to the access complete signal.
-In addition, the monitor performes checks to ensure, that transaction on the interface are always started and completed correctly.
+In addition, the monitor performs checks to ensure, that transaction on the interface are always started and completed correctly and coverage is collected.
 
 \subsection{MCE Module UVC}
 
@@ -144,7 +149,7 @@ The MCE reads the scratchpad every clock cycle, while it is running a program.
 Since reading the scratchpad does not influence its state, it is safe to do so.
 Only the ALU determines, if the read data is required for the execution of an instruction.\\
 Therefore the collector also takes the opcode of the instruction causing the read access into account.
-So a transaction is only created, if the read access is realy necessary for the exection of the instruction.
+So a transaction is only created, if the read access is really necessary for the execution of the instruction.
 
 \paragraph{Condition Code Register Collector}
 
@@ -252,12 +257,12 @@ It indicates that the instructions has used or produced the related data field u
 
 \paragraph{Instruction Execution Flow}
 
-The execution of an instruction in the reference model is devided into multiple phases.
+The execution of an instruction in the reference model is divided into multiple phases.
 Thereby, the current state of an active instruction is indicated by its status field.
 The available states are shown in figure~\ref{fig:ref_model_phases}.
 It displays the finite state machine (FSM) each instruction passes through.
 The opcode of the instruction determines, which states of the FSM are traversed by the instruction, when it is executed.
-Thereby each instruction trys to pass through the FSM as far as possible.
+Thereby each instruction tries to pass through the FSM as far as possible.
 It either reaches the acceptor state \emph{complete}, which indicates that the instruction has finished its execution, or its execution is interrupted by a
 conflict (see section~\ref{stall_barrier}).\\
 A new instruction is always fetched, whenever the PC collector sends a sequence item to the monitor.
@@ -287,7 +292,7 @@ Here it is determined, if a conditional instruction (GARITH, GLOGIC or BCC) is e
 If the conditional execution fails, the instruction still traverses the whole FSM, but does not perform any operations inside of a state.
 By that, the order of the instructions is maintained.\\
 Additionally the next PC is calculated by either jumping to the address included in the CFLOW instruction or by incrementing it for other types of instructions
-with the execption of the STOP instruction, which does not generate a new PC value.
+with the exception of the STOP instruction, which does not generate a new PC value.
 If a new PC value has been calculated, it is also added to its corresponding list in the scoreboard.
 By that, the predicted PC value is always added to the scoreboard before the one collected from the DUT is matched against it.
 Furthermore , if the STOP instruction is executed, an item is added to the \emph{done} list of the scoreboard.
@@ -295,19 +300,19 @@ Finally, the \emph{INIT} phase is completed and the instruction moves on to the 
 
 \subparagraph{SCP\_READ State}
 
-In the \emph{SCP\_READ} state it is checked, if reading from the scratchpad would result in a concflict with a previously scheduled instruction, which has not
+In the \emph{SCP\_READ} state it is checked, if reading from the scratchpad would result in a conflict with a previously scheduled instruction, which has not
 already completed its execution (see section~\ref{stall_barrier}).
 If no conflict occurs, the required registers of the scratchpad are read.
 Their addresses are indicated by the instruction resulting in four possible behaviors.
 Firstly, the instruction does not need any data from the scratchpad, so no data is read.
-Secondly, the instruction performes its operation on its destination register.
+Secondly, the instruction performs its operation on its destination register.
 Then the data is read from the scratchpad address identified by the \emph{RD} field of the instruction.
 Furthermore, the instruction does only require a single operand, so only the register of the scratchpad is read, which is determined by the \emph{RS1} field of
 the instruction.
 Finally, the instruction needs two operands.
 Then both values are read from the scratchpad using the \emph{RS1} and \emph{RS2} fields of the instruction.\\
 Whenever data is read from the scratchpad of the reference model, an item is added to the scratchpad read list of the scoreboard.
-Each item contains the predicted values of a single read operation and the corresponding address of the scatchpad register.
+Each item contains the predicted values of a single read operation and the corresponding address of the scratchpad register.
 So considering the four behaviors mentioned above, an instruction can add up to two items to the scratchpad read list of the scoreboard.
 When two items are added for a single instruction, the item reading the scratchpad register identified by the \emph{RS1} field of the instruction is
 added first.
@@ -359,12 +364,12 @@ They are only updated, when a CCR write transaction is received from the CCR col
 Thereby only the oldest instruction in the \emph{CCR\_WRITE} state is updated.
 So each instruction in this state needs an individual CCR write transaction to proceed its flow within the FSM.\\
 The reference model is thereby independent of the actual amount of clock cycles between fetching an instruction and writing its result into the CCR.
-It is only important, that the seperate resulting condition codes are written into the CCR in order and the resulting behavior of the following instructions is
+It is only important, that the separate resulting condition codes are written into the CCR in order and the resulting behavior of the following instructions is
 correct.\\
-This leads to a more general reference model, that is completely independent of the amount of pipline stages used within the MCE.
+This leads to a more general reference model, that is completely independent of the amount of pipeline stages used within the MCE.
 This reduces the risk of having to adjust the reference model, when the DUT is changed.
 Nevertheless, it has to be checked, that the delay is constant for a specific implementation of the MCE.
-Therefor a seperate \emph{SystemVerilog Assertion} (SVA) is used to verify, that each CCR write occurs three clock cycles after the causing instruction has been
+Therefor a separate \emph{SystemVerilog Assertion} (SVA) is used to verify, that each CCR write occurs three clock cycles after the causing instruction has been
 fetched.\\
 When the update of an active instruction in the \emph{CCR\_WRITE} state is triggered, an item is added to the CCR write list of the scoreboard.
 This sequence item contains the address specifying the register of the CCR given by the \emph{crs} field of the instruction, as well as the predicted resulting
@@ -390,13 +395,13 @@ After that the instruction goes on to the \emph{SCP\_WRITE} state to write its r
 \paragraph{Stall Barrier}\label{stall_barrier}
 
 When the MCE initiates an operation on the CSR, it can take multiple clock cycles until the request is completed.
-Instead of being stalled for this periode, the engine continues to execute the it following instructions.
+Instead of being stalled for this period, the engine continues to execute the it following instructions.
 The MCE only stalls its execution, when a conflict occurs between the pending external memory access and one of the it following instructions.\\
 So the reference model also has to continue the execution of instructions, while a CSR access is pending.
 But it has to ensure, that its internal states remain equivalent to the ones of a unit, that executes instructions strictly in order.
-Since the scratchpad is the only internal memory, that is manipulated by a CSR access, it has to be guarenteed, that the destination register of the pending CSR
+Since the scratchpad is the only internal memory, that is manipulated by a CSR access, it has to be guaranteed, that the destination register of the pending CSR
 access is not manipulated by one of the it following instructions.\\
-To achive this, the stall barrier is used in the reference model. It prevents active instructions from accessing the destination register of a pending CSR
+To achieve this, the stall barrier is used in the reference model. It prevents active instructions from accessing the destination register of a pending CSR
 access. Furthermore, it ensures that all instructions are executed in order and do not pass each other.
 The FSM of the reference model cannot be stalled completely, as soon as a conflict occurs, since transactions are still collected from other pipeline stages of
 the MCE.
@@ -440,15 +445,16 @@ Therefore, the stall barrier is set to \emph{SCP\_READ}, preventing this read op
 
 Completed instructions have to be removed from the list of active instructions.
 They are removed in order from the list, since removing an instructions, also prints its content to the console.
-This means, that a completed instruction is not yet removed, if a previous intruction has not completed its execution.
+This means, that a completed instruction is not yet removed, if a previous instruction has not completed its execution.
 Through that, the completed STR and NOT instructions of figure~\ref{fig:stall_barrier_example} still remain in the list, until the LDR instruction has also
-reached the \emph{COMPLETE} state.
+reached the \emph{COMPLETE} state.\\
+Most important is, that coverage is collected for the instruction, whenever a completed instruction is removed from the list of active instructions.
 
 \subsection{Virtual Sequence Driver}
 
 During the verification the execution of a program within the DUT is controlled by the testbench.
 The individual interfaces of the MCE are thereby controlled by the connected agents.
-Since a test needs to coordinate all these agents at once, a virtal sequence driver is used to direct the individual parts of a test to the corresponding
+Since a test needs to coordinate all these agents at once, a virtual sequence driver is used to direct the individual parts of a test to the corresponding
 sequence drivers within the agents. The interaction between these components is displayed in figure~\ref{fig:vsd}.
 
 \begin{figure}[htb]
@@ -477,7 +483,7 @@ Tests are used to generate the stimuli for the interfaces of the DUT. They write
 bits and start the execution of the program within the MCE. Multiple tests are used to generate various kinds of inputs, depending on the major functionalities,
 which are tested. Thereby the test are shaped mostly in  a general manner, so each test can cover as much functionality of the MCE as possible. Each test can
 then be run with different seeds, resulting in different input patterns within the boundaries of the test \cite{sv_verification}.
-Following are the different kinds of tests explained, wich are used within the testbench.
+Following are the different kinds of tests explained, which are used within the testbench.
 
 \subsubsection{Simple Test}
 
@@ -507,7 +513,7 @@ The structure of the non-branching test is shown in figure~\ref{fig:non_branchin
 \end{figure}
 
 The start address of the program is chosen randomly from the address space of the instruction memory.
-To ensure, that no read operation is performed on an uninitalized register of the scratchpad, each register is firstly initialized using the LDI instruction.
+To ensure, that no read operation is performed on an uninitialized register of the scratchpad, each register is firstly initialized using the LDI instruction.
 After that, a random amount of non-branching instructions is written into the instruction memory.
 At the end, a couple of NOP instructions is written, to flush the pipeline of the MCE and thereby ensure, that all previous operations have completed.
 Finally a single STOP instruction is written to stop the program.
@@ -518,7 +524,7 @@ After all instructions are written into the instruction memory, the program is s
 \subsubsection{Branching Test}
 
 The structure of the branching test is similar to the one of the non-branching test. The start address is selected randomly, first the scratchpad is initialized
-with LDI instructions and at the end the pipline of the MCE is flushed with NOP instructions followed by a single STOP instruction to end the program.
+with LDI instructions and at the end the pipeline of the MCE is flushed with NOP instructions followed by a single STOP instruction to end the program.
 The difference is, that the branching test also includes the instructions of the CFLOW group into its set of random instructions.
 Since with purely random instructions the program could end in a infinity loop, some rules have to ensure, that the program always terminates.\\
 Each branching within the program is structured like a function call. Meaning, that the program jumps to a specific address, executes an amount of instructions
@@ -526,6 +532,15 @@ and then returns to the calling instruction.
 The CFLOW group contains three branching instruction (CALL, JMP, BCC). Since the CALL instruction is designated for function calls, its usage is the simplest.
 Whenever a CALL instruction is executed, the address of the following instruction is pushed to the call stack. So the RET function just has to be called at the
 end of the sub-program. Through that, the PC is automatically restored.\\
+
+\begin{figure}[htb]
+ \centering
+ %\includegraphics[width=1.0\textwidth,angle=0]{images/branching_test}
+ \includegraphics[scale=1.0]{images/branching_test}
+ \caption{Structure of the Branching Test}
+\label{fig:branching_test}
+\end{figure}
+
 Since the addresses of the next instructions are not stored for JMP and BCC instructions, this has to be done within the test itself.
 Thus, the return address is stored within the test and instead of the RET instruction a JMP instruction is used to restore the PC to the return address.\\
 These three types of function calls can also be nested within each other. 
@@ -536,13 +551,7 @@ In this case only non-branching instructions are generated to fill the already a
 The STOP instruction is the only one, that is not allowed to occur randomly within the test.\\
 The structure of the branching test with a single function call is shown in figure~\ref{fig:branching_test}.
 
-\begin{figure}[htb]
- \centering
- %\includegraphics[width=1.0\textwidth,angle=0]{images/branching_test}
- \includegraphics[scale=1.0]{images/branching_test}
- \caption{Structure of the Branching Test}
-\label{fig:branching_test}
-\end{figure}
+
 
 \subsubsection{Multi-Start Branching and Non-Branching Test}
 
@@ -560,5 +569,3 @@ By that, the test can directly restart with the next instruction.
 The external condition code test is a version of the branching test, which also supports controlling the external condition code bits agent.
 Prior to starting the execution of the program, the external condition code bits can be set. 
 Since only the BCC instruction makes use of the external condition code bits, a non-branching test supporting external condition code bits is not required.
-
-\subsection{Coverage and Checks}

@@ -52,14 +52,14 @@ Its standard architecture contains the following elements \cite{uvm_sv}:
   So the collector samples the interface signals and creates the corresponding sequence item.
   This partitioning is optional and not mandatory for UVM.
   \item \textbf{Agent}\\
-  Agents encapsulate sequence drivers, BFMs and monitors to ensure reusability.
+  Agents encapsulate sequence drivers, BFMs and monitors to ensure re-usability.
   They can either be active and drive the signals of the DUT or passive and monitor the DUT's interface while other DUTs drive the signals.
   The active elements of an agent are the sequence driver as well as the BFM and passive ones are the collector and the monitor. 
   The passive elements of an UVC are also used when the agent is configured as active. 
   UVCs can contain more than one agent, for example master or slave agents.
   \item \textbf{Environment}\\
   The environment is the top-level entity of the UVC. 
-  It encapsulates all its agents as well as configuration properties, which are used to customize the UVC and thereby increase its reusability.
+  It encapsulates all its agents as well as configuration properties, which are used to customize the UVC and thereby increase its re-usability.
 \end{itemize}
 
 \subsubsection{Module UVC}\label{module_uvc}
@@ -80,7 +80,7 @@ The reference model emulates the functionality of the DUT by predicting the expe
 Furthermore, it can provide information about the state of the DUT, which cannot be derived directly from the interfaces of the design.
 These can then be used for checking, collecting coverage or generating new traffic.\\
 
-There are three levels of precision for the implementation of a reference model \cite{uvm}:
+There are three levels of precision for the implementation of a reference model \cite{cdnshelp}:
 
 \begin{itemize}
   \item \textbf{Rough-Justification}\\
@@ -102,7 +102,19 @@ There are three levels of precision for the implementation of a reference model 
 To communicate between UVCs, TLM ports are used.
 They provide the ability to exchange sequence items between components.
 With TLM ports, the producing and consuming components can easily be swapped for alternative models, as long as they use the same TLM interface.
-This improves reusability of the UVCs \cite{uvm_sv}.
+This improves re-usability of the UVCs \cite{uvm_sv}.
 
-\subsection{Coverage Driven Verification}
+\subsection{Metric Driven Verification}
 
+Test patterns can be used to test specific behaviors of the DUT \cite{uvm_e}. Thereby, each pattern handles a single scenario.
+These patterns are manually created and require checking the behavior of the DUT by hand.
+Since this kind of verification requires a lot of resources, other routes have to be chosen to reduce the costs of verification.\\
+Using Metric Driven Verification (MDV) \cite{fv}, these hand-crafted specific test patterns are replaced with machine generated stimuli.
+Thereby, the stimuli targets multiple scenarios instead of a single one.
+With the automatically created stimuli, a larger amount of tests can be run.
+Using MDV, the stimuli generation is embedded in the verification environment. Thereby, the driver can react to the state of the DUT and so improve the quality
+of the stimuli.
+The disadvantage of MDV is that the ability to ensure, that all interesting scenarios are verified, is reduced.
+By collecting coverage, a measurement for the effectiveness of the verification is found.
+Untested areas of the design can easily be identified.
+The tests can then be modified to address these areas.

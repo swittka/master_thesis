@@ -1,1 +1,13 @@
 \section*{Zusammenfassung}
+
+Diese Masterarbeit beschäftigt sich mit der funktionalen Verifikation einer Microcode-Engine, die vom Lehrstuhl für Rechnerarchitektur am Institut
+für Technische Informatik der Universität Heidelberg entwickelt wurde. Sie erörtert, wie die Universal Verification Methodology in Kombination mit Metric Driven
+Verification benutzt werden kann, um das korrekte Verhalten der Funktionseinheit sicher zu stellen.\\
+Die in dieser Arbeit entwickelte Testbench zielt darauf ab, zufällige Stimuli mittels mehrerer Tests spontan zu erzeugen.
+Diese Tests wurden entwickelt, um spezielle Funktionalitäten der Funktionseinheit zu behandeln, aber dennoch generell genug zu sein, um alle interessanten
+Fälle zu erreichen.
+Die generierten Stimuli werden dann verwendet, um das Design unter Test anzusteuern.\\
+Zusätzlich wird ein auf Transaktionsebene basierendes Referenzmodell benutzt, um das Verhalten der Microcode-Engine vorherzusagen.
+Des Weiteren wird der interne Status der Microcode-Engine zusätzlich zu ihren Schnittstellen überwacht, damit das Model noch enger mit dem Verhalten der
+Funktionseinheit verbunden ist. Beide, die gesammelten und die vorhergesagten Ergebnisse werden dann verglichen, um eine sich selbst überprüfende Umgebung zu
+erstellen. Schließlich werden Abdeckungsdaten gesammelt, um die Effektivität der Verifikation zu messen.
