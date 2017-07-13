@@ -15,8 +15,8 @@ Their stimuli were applied to the different interfaces of the design using the s
 The separate sequence drivers were thereby controlled by a virtual sequence driver, as a result of that directing the execution of the tests.\\
 A complex reference model was implemented, using a list of active instructions to be able to consider all conflicts, that can occur, when the engine was
 executing the following instructions, while accesses on the CSR were still pending. Together with that, a stall barrier was used to ensure, that no following
-instructions would access the critical register of the scratchpad or pass a previous instruction until the conflict was solved by the completion of the pending
-CSR access. \\
+instructions would access the critical register of the scratchpad or pass a previous instruction until the conflict was resolved by the completion of the
+pending CSR access. \\
 The scoreboard of the module UVC used both, the collected data from the DUT and the predicted ones from the reference model, to create a
 self-checking verification environment.
 The coverage collected from the interfaces of the microcode engine as well as the active instructions of the reference model ensured, that all interesting
